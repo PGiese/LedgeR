@@ -4,6 +4,16 @@ Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
 
 start<-"/usr/local/bin/ledger -f /Users/phil/Dropbox/Schnucki/Journal_ledger.txt "
 
+get_options<-function(interval,begin,end){
+  int<-switch (interval,
+    "original" = "",
+    "daily" = "-D",
+    "weekly" = "-W",
+    "monthly" = "-M"
+  )
+  paste(int,"-b",begin,"-e",end)
+}
+
 account_list<-function(account){
   accounts<-system(paste(start,"accounts", account), intern=T)
   accounts_filtered<-c("------",gsub(ifelse(account=="",":.*.",paste(account,":",sep="")),"",accounts)[!duplicated(gsub(ifelse(account=="",":.*.",paste(account,":",sep="")),"",accounts))])
@@ -46,6 +56,10 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(selectInput('account', 'Account level one', account_list(""))),
     sidebarMenu(uiOutput('account2')),
+    sidebarMenu(uiOutput('account3')),
+    sidebarMenu(selectInput('interval','Interval',c("original","daily","weekly","monthly"))),
+    sidebarMenu(dateInput('begin','Start date', value=Sys.Date()-365)),
+    sidebarMenu(dateInput('end','End date', value=Sys.Date())),    
     radioButtons('cumulative', "Cumulative Amounts?", c("amount", "display_total"), selected = "display_total", inline = FALSE)
   ),
   dashboardBody(
@@ -64,14 +78,17 @@ ui <- dashboardPage(
 server <- function(input, output) {
 
   output$plot1 <- renderPlot({
-    draw_balance("balance","",ifelse(input$account=="------","",paste(input$account,ifelse(input$account2=="------","",":"),ifelse(input$account2=="------","",input$account2),sep = "")),input$cumulative)
+    draw_balance("balance",get_options(input$interval,input$begin,input$end),ifelse(input$account=="------","",paste(input$account,ifelse(input$account2=="------","",":"),ifelse(input$account2=="------","",input$account2),sep = "")),input$cumulative)
   })
   output$plot2 <- renderPlot({
-    draw_reg("register","",ifelse(input$account=="------","",paste(input$account,ifelse(input$account2=="------","",":"),ifelse(input$account2=="------","",input$account2),sep = "")),input$cumulative)
+    draw_reg("register",get_options(input$interval,input$begin,input$end),ifelse(input$account=="------","",paste(input$account,ifelse(input$account2=="------","",":"),ifelse(input$account2=="------","",input$account2),ifelse(input$account3=="------","",paste(":",input$account3,sep="")),sep = "")),input$cumulative)
   })  
   output$account2<-renderUI({
-    selectInput('account2', 'Account level one', account_list(ifelse(input$account=="------","",input$account)))
+    selectInput('account2', 'Account level two', account_list(ifelse(input$account=="------","",input$account)))
   })
+  output$account3<-renderUI({
+    selectInput('account3', 'Account level three', account_list(ifelse(input$account=="------" | input$account2=="------","",paste(input$account,":",input$account2,sep=""))))
+  })  
   #output$test<-renderText({paste(input$account,ifelse(input$account2=="------","",":"),ifelse(input$account2=="------","",input$account2),sep = "")})
 }
 
