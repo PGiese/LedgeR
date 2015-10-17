@@ -20,10 +20,6 @@ account_list<-function(account){
   gsub(":.*.","",accounts_filtered)[!duplicated(gsub(":.*.","",accounts_filtered))]
   }
 
-substrRight <- function(x, n){
-  substr(x, nchar(x)-n+1, nchar(x))
-}
-
 form<-function(command,amount)
   paste("--",command,"-format \"%(date)\t%(account)\t%(",amount,")\\n\"",sep = "")
 
