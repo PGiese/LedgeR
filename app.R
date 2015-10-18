@@ -2,7 +2,11 @@ library(shiny)
 library(shinydashboard)
 Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
 
-start<-"/usr/local/bin/ledger -f /Users/phil/Dropbox/Schnucki/Journal_ledger.txt "
+#Post the path to your ledger-file here
+filepath<-"/path/to/ledger-file"
+
+# of course, if the .ledgerrc is modified accordingly, there's no need for the f-option
+start<-paste("/usr/local/bin/ledger -f ",filepath," ",sep="")
 
 get_options<-function(interval,begin,end){
   int<-switch (interval,
